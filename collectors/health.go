@@ -523,7 +523,20 @@ func (c *ClusterHealthCollector) collect() error {
 	case CephHealthOK:
 		c.HealthStatus.Set(0)
 	case CephHealthWarn:
-		c.HealthStatus.Set(1)
+		firingChecksCount := len(stats.Health.Checks)
+		if firingChecksCount == 1 {
+			for k, check := range stats.Health.Checks {
+				if k == "OSDMAP_FLAGS" {
+					c.HealthStatus.Set(0)
+				}
+				else {
+					c.HealthStatus.Set(1)
+				}
+			}
+		}
+		else {
+			c.HealthStatus.Set(1)
+		}
 	case CephHealthErr:
 		c.HealthStatus.Set(2)
 	default:
